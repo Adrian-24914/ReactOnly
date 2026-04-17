@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Snake</title>
+
+  <!-- React -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+
+    const { useState, useEffect } = React;
+
+    // Tablero
+    function Board({ snake }) {
+      const size = 20;
+      const cells = [];
+
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          const isSnake = snake.some(
+            segment => segment.x === x && segment.y === y
+          );
+
+          cells.push(
+            <div
+              key={`${x}-${y}`}
+              className={`cell ${isSnake ? "snake" : ""}`}
+            />
+          );
+        }
+      }
+
+      return <div className="board">{cells}</div>;
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<Game />);
+
+  </script>
+</body>
+</html>
