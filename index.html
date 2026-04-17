@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Snake</title>
+  <title>Snake - Paso 4</title>
 
   <!-- React -->
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -45,6 +45,12 @@
       color: red;
       font-weight: bold;
     }
+
+    button {
+      margin-top: 10px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
   </style>
 </head>
 
@@ -58,20 +64,29 @@
     function Game() {
       const size = 20;
 
-      const [snake, setSnake] = useState([
+      const initialSnake = [
         { x: 5, y: 5 },
         { x: 4, y: 5 },
         { x: 3, y: 5 }
-      ]);
+      ];
 
-      const [direction, setDirection] = useState({ x: 1, y: 0 });
-
-      const [food, setFood] = useState({
+      const randomFood = () => ({
         x: Math.floor(Math.random() * size),
         y: Math.floor(Math.random() * size)
       });
 
+      const [snake, setSnake] = useState(initialSnake);
+      const [direction, setDirection] = useState({ x: 1, y: 0 });
+      const [food, setFood] = useState(randomFood());
       const [gameOver, setGameOver] = useState(false);
+
+      // Reinicio
+      const resetGame = () => {
+        setSnake(initialSnake);
+        setDirection({ x: 1, y: 0 });
+        setFood(randomFood());
+        setGameOver(false);
+      };
 
       // WASD
       useEffect(() => {
@@ -101,7 +116,7 @@
               y: head.y + direction.y
             };
 
-            //  COLISIÓN CON PAREDES
+            // Colisión paredes
             if (
               newHead.x < 0 ||
               newHead.x >= size ||
@@ -112,7 +127,7 @@
               return prevSnake;
             }
 
-            //  COLISIÓN CONSIGO MISMA
+            // Colisión consigo misma
             const hitSelf = prevSnake.some(
               s => s.x === newHead.x && s.y === newHead.y
             );
@@ -122,7 +137,7 @@
               return prevSnake;
             }
 
-            // COMER
+            // Comer
             const ateFood =
               newHead.x === food.x && newHead.y === food.y;
 
@@ -130,12 +145,7 @@
 
             if (ateFood) {
               newSnake = [newHead, ...prevSnake];
-
-              setFood({
-                x: Math.floor(Math.random() * size),
-                y: Math.floor(Math.random() * size)
-              });
-
+              setFood(randomFood());
             } else {
               newSnake = [newHead, ...prevSnake.slice(0, -1)];
             }
@@ -149,9 +159,14 @@
 
       return (
         <div>
-          <h2>Snake - Colisiones</h2>
+          <h2>Snake - Con reinicio</h2>
 
-          {gameOver && <p className="game-over">Game Over</p>}
+          {gameOver && (
+            <>
+              <p className="game-over">Game Over</p>
+              <button onClick={resetGame}>Reiniciar</button>
+            </>
+          )}
 
           <Board snake={snake} food={food} />
         </div>
