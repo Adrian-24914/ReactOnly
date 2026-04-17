@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Snake - Paso 2</title>
+  <title>Snake</title>
 
   <!-- React -->
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -40,6 +40,11 @@
     .food {
       background: red;
     }
+
+    .game-over {
+      color: red;
+      font-weight: bold;
+    }
   </style>
 </head>
 
@@ -66,22 +71,16 @@
         y: Math.floor(Math.random() * size)
       });
 
-      // Movimiento con teclado (WASD)
+      const [gameOver, setGameOver] = useState(false);
+
+      // WASD
       useEffect(() => {
         const handleKey = (e) => {
           switch (e.key.toLowerCase()) {
-            case "w":
-              setDirection({ x: 0, y: -1 });
-              break;
-            case "s":
-              setDirection({ x: 0, y: 1 });
-              break;
-            case "a":
-              setDirection({ x: -1, y: 0 });
-              break;
-            case "d":
-              setDirection({ x: 1, y: 0 });
-              break;
+            case "w": setDirection({ x: 0, y: -1 }); break;
+            case "s": setDirection({ x: 0, y: 1 }); break;
+            case "a": setDirection({ x: -1, y: 0 }); break;
+            case "d": setDirection({ x: 1, y: 0 }); break;
           }
         };
 
@@ -89,8 +88,10 @@
         return () => window.removeEventListener("keydown", handleKey);
       }, []);
 
-      // Loop del juego
+      // Loop
       useEffect(() => {
+        if (gameOver) return;
+
         const interval = setInterval(() => {
           setSnake(prevSnake => {
             const head = prevSnake[0];
@@ -100,7 +101,28 @@
               y: head.y + direction.y
             };
 
-            // Comer comida
+            //  COLISIÓN CON PAREDES
+            if (
+              newHead.x < 0 ||
+              newHead.x >= size ||
+              newHead.y < 0 ||
+              newHead.y >= size
+            ) {
+              setGameOver(true);
+              return prevSnake;
+            }
+
+            //  COLISIÓN CONSIGO MISMA
+            const hitSelf = prevSnake.some(
+              s => s.x === newHead.x && s.y === newHead.y
+            );
+
+            if (hitSelf) {
+              setGameOver(true);
+              return prevSnake;
+            }
+
+            // COMER
             const ateFood =
               newHead.x === food.x && newHead.y === food.y;
 
@@ -109,11 +131,11 @@
             if (ateFood) {
               newSnake = [newHead, ...prevSnake];
 
-              // nueva comida
               setFood({
                 x: Math.floor(Math.random() * size),
                 y: Math.floor(Math.random() * size)
               });
+
             } else {
               newSnake = [newHead, ...prevSnake.slice(0, -1)];
             }
@@ -123,11 +145,14 @@
         }, 200);
 
         return () => clearInterval(interval);
-      }, [direction, food]);
+      }, [direction, food, gameOver]);
 
       return (
         <div>
-          <h2>Snake - WASD + Comida</h2>
+          <h2>Snake - Colisiones</h2>
+
+          {gameOver && <p className="game-over">Game Over</p>}
+
           <Board snake={snake} food={food} />
         </div>
       );
