@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Snake - Paso 1</title>
+  <title>Snake - Paso 2</title>
 
   <!-- React -->
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -36,6 +36,10 @@
     .snake {
       background: green;
     }
+
+    .food {
+      background: red;
+    }
   </style>
 </head>
 
@@ -46,8 +50,9 @@
 
     const { useState, useEffect } = React;
 
-    // Componente principal
     function Game() {
+      const size = 20;
+
       const [snake, setSnake] = useState([
         { x: 5, y: 5 },
         { x: 4, y: 5 },
@@ -56,48 +61,97 @@
 
       const [direction, setDirection] = useState({ x: 1, y: 0 });
 
+      const [food, setFood] = useState({
+        x: Math.floor(Math.random() * size),
+        y: Math.floor(Math.random() * size)
+      });
+
+      // Movimiento con teclado (WASD)
+      useEffect(() => {
+        const handleKey = (e) => {
+          switch (e.key.toLowerCase()) {
+            case "w":
+              setDirection({ x: 0, y: -1 });
+              break;
+            case "s":
+              setDirection({ x: 0, y: 1 });
+              break;
+            case "a":
+              setDirection({ x: -1, y: 0 });
+              break;
+            case "d":
+              setDirection({ x: 1, y: 0 });
+              break;
+          }
+        };
+
+        window.addEventListener("keydown", handleKey);
+        return () => window.removeEventListener("keydown", handleKey);
+      }, []);
+
       // Loop del juego
       useEffect(() => {
         const interval = setInterval(() => {
           setSnake(prevSnake => {
             const head = prevSnake[0];
+
             const newHead = {
               x: head.x + direction.x,
               y: head.y + direction.y
             };
 
-            const newSnake = [newHead, ...prevSnake.slice(0, -1)];
+            // Comer comida
+            const ateFood =
+              newHead.x === food.x && newHead.y === food.y;
+
+            let newSnake;
+
+            if (ateFood) {
+              newSnake = [newHead, ...prevSnake];
+
+              // nueva comida
+              setFood({
+                x: Math.floor(Math.random() * size),
+                y: Math.floor(Math.random() * size)
+              });
+            } else {
+              newSnake = [newHead, ...prevSnake.slice(0, -1)];
+            }
+
             return newSnake;
           });
         }, 200);
 
         return () => clearInterval(interval);
-      }, [direction]);
+      }, [direction, food]);
 
       return (
         <div>
-          <h2>Snake - Movimiento básico</h2>
-          <Board snake={snake} />
+          <h2>Snake - WASD + Comida</h2>
+          <Board snake={snake} food={food} />
         </div>
       );
     }
 
-    // Tablero
-    function Board({ snake }) {
+    function Board({ snake, food }) {
       const size = 20;
       const cells = [];
 
       for (let y = 0; y < size; y++) {
         for (let x = 0; x < size; x++) {
+
           const isSnake = snake.some(
-            segment => segment.x === x && segment.y === y
+            s => s.x === x && s.y === y
           );
 
+          const isFood = food.x === x && food.y === y;
+
+          let className = "cell";
+          if (isSnake) className += " snake";
+          if (isFood) className += " food";
+
           cells.push(
-            <div
-              key={`${x}-${y}`}
-              className={`cell ${isSnake ? "snake" : ""}`}
-            />
+            <div key={`${x}-${y}`} className={className}></div>
           );
         }
       }
