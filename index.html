@@ -20,6 +20,17 @@
 
     const { useState, useEffect } = React;
 
+    // Componente principal
+    function Game() {
+      const [snake, setSnake] = useState([
+        { x: 5, y: 5 },
+        { x: 4, y: 5 },
+        { x: 3, y: 5 }
+      ]);
+
+      const [direction, setDirection] = useState({ x: 1, y: 0 });
+
+
     // Tablero
     function Board({ snake }) {
       const size = 20;
