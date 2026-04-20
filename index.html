@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Snake - Paso 4</title>
+  <title>Snake - React Refactor</title>
 
   <!-- React -->
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -71,14 +71,14 @@
       const [direction, setDirection] = useState({ x: 1, y: 0 });
       const [food, setFood] = useState(randomFood());
       const [gameOver, setGameOver] = useState(false);
-      const [score, setScore] = useState(0); // NUEVO
+      const [score, setScore] = useState(0);
 
       const resetGame = () => {
         setSnake(initialSnake);
         setDirection({ x: 1, y: 0 });
         setFood(randomFood());
         setGameOver(false);
-        setScore(0); // NUEVO
+        setScore(0);
       };
 
       useEffect(() => {
@@ -93,7 +93,7 @@
 
         window.addEventListener("keydown", handleKey);
         return () => window.removeEventListener("keydown", handleKey);
-      }, [direction]); // leve mejora
+      }, [direction]);
 
       useEffect(() => {
         if (gameOver) return;
@@ -108,33 +108,27 @@
             };
 
             if (
-              newHead.x < 0 ||
-              newHead.x >= size ||
-              newHead.y < 0 ||
-              newHead.y >= size
+              newHead.x < 0 || newHead.x >= size ||
+              newHead.y < 0 || newHead.y >= size
             ) {
               setGameOver(true);
               return prevSnake;
             }
 
-            const hitSelf = prevSnake.some(
-              s => s.x === newHead.x && s.y === newHead.y
-            );
-
+            const hitSelf = prevSnake.some(s => s.x === newHead.x && s.y === newHead.y);
             if (hitSelf) {
               setGameOver(true);
               return prevSnake;
             }
 
-            const ateFood =
-              newHead.x === food.x && newHead.y === food.y;
+            const ateFood = newHead.x === food.x && newHead.y === food.y;
 
             let newSnake;
 
             if (ateFood) {
               newSnake = [newHead, ...prevSnake];
               setFood(randomFood());
-              setScore(s => s + 1); // NUEVO
+              setScore(s => s + 1);
             } else {
               newSnake = [newHead, ...prevSnake.slice(0, -1)];
             }
@@ -148,9 +142,8 @@
 
       return (
         <div>
-          <h2>Snake - Con reinicio</h2>
-
-          <Score value={score} /> {/* NUEVO */}
+          <h2>Snake</h2>
+          <Score value={score} />
 
           {gameOver && (
             <>
@@ -159,35 +152,60 @@
             </>
           )}
 
-          <Board snake={snake} food={food} />
+          <Board size={size}>
+            <Snake snake={snake} />
+            <Food food={food} />
+          </Board>
         </div>
       );
     }
 
-    function Board({ snake, food }) {
-      const size = 20;
+    function Board({ size, children }) {
       const cells = [];
 
       for (let y = 0; y < size; y++) {
         for (let x = 0; x < size; x++) {
-          cells.push(
-            <Cell key={`${x}-${y}`} x={x} y={y} snake={snake} food={food} />
-          );
+          cells.push(<Cell key={`${x}-${y}`} x={x} y={y} />);
         }
       }
 
-      return <div className="board">{cells}</div>;
+      return (
+        <div className="board">
+          {cells}
+          {children}
+        </div>
+      );
     }
 
-    function Cell({ x, y, snake, food }) {
-      const isSnake = snake.some(s => s.x === x && s.y === y);
-      const isFood = food.x === x && food.y === y;
+    function Cell() {
+      return <div className="cell"></div>;
+    }
 
-      let className = "cell";
-      if (isSnake) className += " snake";
-      if (isFood) className += " food";
+    function Snake({ snake }) {
+      return snake.map((segment, index) => (
+        <div
+          key={index}
+          className="cell snake"
+          style={{
+            position: 'absolute',
+            left: segment.x * 21,
+            top: segment.y * 21
+          }}
+        />
+      ));
+    }
 
-      return <div className={className}></div>;
+    function Food({ food }) {
+      return (
+        <div
+          className="cell food"
+          style={{
+            position: 'absolute',
+            left: food.x * 21,
+            top: food.y * 21
+          }}
+        />
+      );
     }
 
     function Score({ value }) {
