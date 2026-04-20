@@ -33,18 +33,10 @@
       background: #eee;
     }
 
-    .snake {
-      background: green;
-    }
+    .snake { background: green; }
+    .food { background: red; }
 
-    .food {
-      background: red;
-    }
-
-    .game-over {
-      color: red;
-      font-weight: bold;
-    }
+    .game-over { color: red; font-weight: bold; }
 
     button {
       margin-top: 10px;
@@ -79,31 +71,30 @@
       const [direction, setDirection] = useState({ x: 1, y: 0 });
       const [food, setFood] = useState(randomFood());
       const [gameOver, setGameOver] = useState(false);
+      const [score, setScore] = useState(0); // NUEVO
 
-      // Reinicio
       const resetGame = () => {
         setSnake(initialSnake);
         setDirection({ x: 1, y: 0 });
         setFood(randomFood());
         setGameOver(false);
+        setScore(0); // NUEVO
       };
 
-      // WASD
       useEffect(() => {
         const handleKey = (e) => {
           switch (e.key.toLowerCase()) {
-            case "w": setDirection({ x: 0, y: -1 }); break;
-            case "s": setDirection({ x: 0, y: 1 }); break;
-            case "a": setDirection({ x: -1, y: 0 }); break;
-            case "d": setDirection({ x: 1, y: 0 }); break;
+            case "w": if (direction.y !== 1) setDirection({ x: 0, y: -1 }); break;
+            case "s": if (direction.y !== -1) setDirection({ x: 0, y: 1 }); break;
+            case "a": if (direction.x !== 1) setDirection({ x: -1, y: 0 }); break;
+            case "d": if (direction.x !== -1) setDirection({ x: 1, y: 0 }); break;
           }
         };
 
         window.addEventListener("keydown", handleKey);
         return () => window.removeEventListener("keydown", handleKey);
-      }, []);
+      }, [direction]); // leve mejora
 
-      // Loop
       useEffect(() => {
         if (gameOver) return;
 
@@ -116,7 +107,6 @@
               y: head.y + direction.y
             };
 
-            // Colisión paredes
             if (
               newHead.x < 0 ||
               newHead.x >= size ||
@@ -127,7 +117,6 @@
               return prevSnake;
             }
 
-            // Colisión consigo misma
             const hitSelf = prevSnake.some(
               s => s.x === newHead.x && s.y === newHead.y
             );
@@ -137,7 +126,6 @@
               return prevSnake;
             }
 
-            // Comer
             const ateFood =
               newHead.x === food.x && newHead.y === food.y;
 
@@ -146,6 +134,7 @@
             if (ateFood) {
               newSnake = [newHead, ...prevSnake];
               setFood(randomFood());
+              setScore(s => s + 1); // NUEVO
             } else {
               newSnake = [newHead, ...prevSnake.slice(0, -1)];
             }
@@ -160,6 +149,8 @@
       return (
         <div>
           <h2>Snake - Con reinicio</h2>
+
+          <Score value={score} /> {/* NUEVO */}
 
           {gameOver && (
             <>
@@ -179,24 +170,28 @@
 
       for (let y = 0; y < size; y++) {
         for (let x = 0; x < size; x++) {
-
-          const isSnake = snake.some(
-            s => s.x === x && s.y === y
-          );
-
-          const isFood = food.x === x && food.y === y;
-
-          let className = "cell";
-          if (isSnake) className += " snake";
-          if (isFood) className += " food";
-
           cells.push(
-            <div key={`${x}-${y}`} className={className}></div>
+            <Cell key={`${x}-${y}`} x={x} y={y} snake={snake} food={food} />
           );
         }
       }
 
       return <div className="board">{cells}</div>;
+    }
+
+    function Cell({ x, y, snake, food }) {
+      const isSnake = snake.some(s => s.x === x && s.y === y);
+      const isFood = food.x === x && food.y === y;
+
+      let className = "cell";
+      if (isSnake) className += " snake";
+      if (isFood) className += " food";
+
+      return <div className={className}></div>;
+    }
+
+    function Score({ value }) {
+      return <h3>Puntaje: {value}</h3>;
     }
 
     ReactDOM.createRoot(document.getElementById("root")).render(<Game />);
